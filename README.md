@@ -1,0 +1,1 @@
+Este projeto contem a solução para o desafio proposto para concorrentes a vaga de estágio na empresa Justiça Fácil. Link para o repositório contendo o desafio: [Desafio](https://github.com/justica-facil/desafio-estagio)
