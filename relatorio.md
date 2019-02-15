@@ -1,4 +1,9 @@
-Primeiro dia – 12/02: 
+# Relatório
+
+##### Considerações iniciais: 
+Neste documento estará descrito o processo para solução do desafio proposto, indicarei as soluções proposta no início, ao se identificar o problema, até a possível solução de fato para o mesmo. O relatório será construído no decorrer das tentativas de soluções. Dessa forma,  discorrerei em primeira pessoa para uma melhor fluidez do texto.
+
+##### 12/02: 
 Após ler o desafio tentei identificar o que eu precisava aprender e os problemas que eu iria precisar resolver para se chegar a solução. A se aprender identifiquei:
 - Como a função MD5 funciona
 - Entender o básico de como “quebrar” captcha
@@ -13,27 +18,29 @@ Utilizei como fonte de pesquisa: [Curl](https://gist.github.com/subfuzion/08c5d8
 
 - Um outro problema que enfrentei foi como encriptar o pdf. Pesquisando encontrei o seguinte site [MD5 encrypt](www.md5online.org) que criptografa uma string inserida para o seu MD5. Pensei primeiramente em fazer um post e passando o pdf, mas há um parâmetro “g-recaptcha-response” que ainda não sei como funciona. Então resolvi me preocupar primeiro com o que eu sei fazer.
 
-13/02: 
+##### 13/02: 
 Analisando o código fonte da página, novamente percebi que o form feito após o captcha ser resolvido pode ser realizado diretamente através de um get (apesar de o form indicar um post): http://inter03.tse.jus.br/sadJudDiarioDeJusticaConsulta/diario.do?action=downloadDiario&pergunta=&captchaValidacao=ok&resposta=&id=96579&tribunal=TSE. Sendo os parâmetros pergunta e respota vazios e captchaValidacao sendo 'ok'.Assim, descartei, pelo menos por enquanto, a ideia de fazer um dicionário que verifica os padrões para quebrar o captcha, como eu havia pensado anteriormente.
 Diante disso, me propus a fazer este get utilizando python e passando um id de alguns dos diários (escolhidos no código fonte da página).
-    Ao tentar realizar essa tarefa cheguei ao seguinte trecho de código:
+Ao tentar realizar essa tarefa cheguei ao seguinte trecho de código:
 
-    import urllib
-    import requests
+```python
+import urllib
+import requests
 
-    dictParametrosUrlBaixaDiario = {
-        'action': 'downloadDiario',
-        'pergunta': '',
-        'captchaValidacao': 'ok',
-        'resposta': '',
-        'id': 96753, 'tribunal': 'TSE'}
-    parametrosUrlBaixaDiarioEnconded = urllib.parse.urlencode(dictParametrosUrlBaixaDiario)
-    urlBaixaDiario = 'http://inter03.tse.jus.br/sadJudDiarioDeJusticaConsulta/diario.do'
-    respostaUrlBaixaDiario = requests.get(urlBaixaDiario, params=parametrosUrlBaixaDiarioEnconded)
-    print(respostaUrlBaixaDiario)
-    with open('cadernos/testeteete', 'wb') as file:
-        for parte in respostaUrlBaixaDiario.iter_content(chunk_size=128):
-            file.write(parte)'
+dictParametrosUrlBaixaDiario = {
+    'action': 'downloadDiario',
+    'pergunta': '',
+    'captchaValidacao': 'ok',
+    'resposta': '',
+    'id': 96753, 'tribunal': 'TSE'}
+parametrosUrlBaixaDiarioEnconded = urllib.parse.urlencode(dictParametrosUrlBaixaDiario)
+urlBaixaDiario = 'http://inter03.tse.jus.br/sadJudDiarioDeJusticaConsulta/diario.do'
+respostaUrlBaixaDiario = requests.get(urlBaixaDiario, params=parametrosUrlBaixaDiarioEnconded)
+print(respostaUrlBaixaDiario)
+with open('cadernos/testeteete', 'wb') as file:
+    for parte in respostaUrlBaixaDiario.iter_content(chunk_size=128):
+        file.write(parte)
+```
 
 O parâmetro id foi testado com vários valores de id encontrados no código fonte da página.
 Da biblioteca urllib foi utilizado o método parse.urlencode() que recebe um dicionário representando os parâmetros, e então, o converte para url string. Isso é devido ao fato de o content-type da requisição ser application/x-www-form-urlencoded; charset=UTF-8.
@@ -55,29 +62,31 @@ Verifiquei que no código fonte da página há um form para "pesquisa avançada"
 
 Diante disse cheguei ao seguinte código:
 
-    import urllib
-    import requests
-    import re
+```python
+import urllib
+import requests
+import re
 
-    parametrosUrlBuscaDiario = {
-        'action': 'buscarDiarios',
-        'voDiarioSearch.tribunal': 'TSE',
-        'page': 'diarioPageTextualList.jsp',
-        'voDiarioSearch.tribunal': 'TSE',
-        'voDiarioSearch.livre': '',
-        'voDiarioSearch.numero': '',
-        'voDiarioSearch.ano': '',
-        'voDiarioSearch.dataPubIni': '01/10/2018',
-        'voDiarioSearch.dataPubFim': '01/10/2018'
-    }
+parametrosUrlBuscaDiario = {
+    'action': 'buscarDiarios',
+    'voDiarioSearch.tribunal': 'TSE',
+    'page': 'diarioPageTextualList.jsp',
+    'voDiarioSearch.tribunal': 'TSE',
+    'voDiarioSearch.livre': '',
+    'voDiarioSearch.numero': '',
+    'voDiarioSearch.ano': '',
+    'voDiarioSearch.dataPubIni': '01/10/2018',
+    'voDiarioSearch.dataPubFim': '01/10/2018'
+}
 
-    parametrosToUrlEncoded = urllib.parse.urlencode(parametrosUrlBuscaDiario)
+parametrosToUrlEncoded = urllib.parse.urlencode(parametrosUrlBuscaDiario)
 
-    urlBuscaDiario = 'http://inter03.tse.jus.br/sadJudDiarioDeJusticaConsulta/diarioTxt.do'
-    respostaHtmlBuscaDiario = requests.get(urlBuscaDiario, params=parametrosToUrlEncoded)
-    conteudoBusca = respostaHtmlBuscaDiario.content
+urlBuscaDiario = 'http://inter03.tse.jus.br/sadJudDiarioDeJusticaConsulta/diarioTxt.do'
+respostaHtmlBuscaDiario = requests.get(urlBuscaDiario, params=parametrosToUrlEncoded)
+conteudoBusca = respostaHtmlBuscaDiario.content
 
-    regexBuscaIdDiario = re.findall(r'(?<=chamarCaptcha\()(.*)(?=,)', str(conteudoBusca))
+regexBuscaIdDiario = re.findall(r'(?<=chamarCaptcha\()(.*)(?=,)', str(conteudoBusca))
+```
 
 Para encontrar o(s) Id(s) do(s) diário(s) na resposta HTML utilzei a biblioteca re. Utilizei o método findall e apliquei o seguinte padrão: "(?<=chamarCaptcha\()(.*)(?=,)", que garante que será retornado tudo que está entre a string 'chamarCaptcha' e o caracter ','. Assim será retornado uma lista contento o(s) id(s) do(s) diário(s) em formato de string.
 Referências: 
@@ -86,8 +95,24 @@ Referências:
 * [Docs para html parser](https://docs.python.org/2/library/htmlparser.html)
 
 Após isso, juntei as duas funções, colocando a primeira dentro de um "for" e baixando os diários para cada id encontrado na segunda função.
-
 Outras referências:
 * [.gitinore](https://github.com/github/gitignore/blob/master/Python.gitignore)
 * [stackoverflow - urlencode](https://stackoverflow.com/questions/28906859/module-has-no-attribute-urlencode)
 * [Ajuda da documentação](https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files)
+ 
+##### 14/02:
+
+Após conseguir baixar o pdf tendo uma data, ainda há a tarefa de retornar os hash's MD5 dos cadernos dessa data. Comecei lendo o [link](https://pt.wikipedia.org/wiki/MD5) de referência e dele encontrei informações so o programa [md5sum](https://en.wikipedia.org/wiki/Md5sum). Então usei o bash do linux para encontrar o hash de um dos cadernos baixados, e deu certo. 
+Diante disso, procurei uma maneira de fazer o mesmo utilizando o python. Na documentação encontrei o módulo [hashlib](https://docs.python.org/3/library/hashlib.html#hash-algorithms) e o [fonte](https://github.com/python/cpython/blob/3.7/Lib/hashlib.py) dele e escreci um código para encontrar o hash de um dos arquivos:
+    
+```python
+import hashlib
+
+m = hashlib.md5()
+caminhoarquivo = '/home/cardernos/01-10-2018-1'
+with open(caminhoarquivo, 'rb') as f:
+    m.update(f.read())
+    print(m.hexdigest())
+```
+O método update atualiza o objeto hash com os bytes do arquivo e hexdisgest() retorna a hash (message digest) gerada contendo apenas dígitos hexadecimais. Este que é o mesmo gerado pelo programa md5sum do bash.
+Obs.: Esse trecho de código foi apenas de teste, verifiquei que há possibilidades de problemas nessa abordagem, como descrito nos comentários no [link](https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file). Dessa forma não inserir esse código no arquivo fonte.
