@@ -94,7 +94,7 @@ Referências:
 * [Teste da expressão regular](https://regexr.com/48b7r)
 * [Docs para html parser](https://docs.python.org/2/library/htmlparser.html)
 
-Após isso, juntei as duas funções, colocando a primeira dentro de um "for" e baixando os diários para cada id encontrado na segunda função.
+Após isso, juntei aos dois trechos de código, colocando o primeiro dentro de um "for" e baixando os diários para cada id encontrado no segundo trecho.
 Outras referências:
 * [.gitinore](https://github.com/github/gitignore/blob/master/Python.gitignore)
 * [stackoverflow - urlencode](https://stackoverflow.com/questions/28906859/module-has-no-attribute-urlencode)
@@ -116,3 +116,49 @@ with open(caminhoarquivo, 'rb') as f:
 ```
 O método update atualiza o objeto hash com os bytes do arquivo e hexdisgest() retorna a hash (message digest) gerada contendo apenas dígitos hexadecimais. Este que é o mesmo gerado pelo programa md5sum do bash.
 Obs.: Esse trecho de código foi apenas de teste, verifiquei que há possibilidades de problemas nessa abordagem, como descrito nos comentários no [link](https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file). Dessa forma não inserir esse código no arquivo fonte.
+
+##### 16/02:
+Diante do problema com o tamanho do arquivo decidi acessá-lo por partes e utilizar a função update() em cada parte. Cheguei ao seguinte código:
+
+```python
+def FazHashDiarios(listaNomeDiarios):
+    md5Hash = hashlib.md5()
+
+    for index, nomeDiario in enumerate(listaNomeDiarios):
+        os.mkdir
+        with open('../cadernos/{}/{}-{}'.format(nomeDiario, nomeDiario, index + 1), 'rb') as arquivo:
+            while True:
+                parte = arquivo.read(128)
+                if parte == b'':
+                    break
+                else:
+                    md5Hash.update(parte)
+        with open('../cadernos/{}/{}-hash'.format(nomeDiario, nomeDiario), 'a+') as arquivo:
+            hexadecimalHash = md5Hash.hexdigest()
+            arquivo.write(hexadecimalHash)
+            arquivo.write('\n')
+        arquivo.close()
+```
+
+Essa função recebe uma lista com os nomes dos diários (criados pelo código que baixa os diários), acessa cada arquivo e faz o hash dele por partes. E como descrito no [código fonte](https://github.com/python/cpython/blob/3.7/Lib/hashlib.py), chamadas consecutivas do método update() é equivalente a uma única chamada passando o arquivo inteiro como argumento.
+O if verifica se o fim do arquivo já foi alcançado. Além disso, após escrever o hash, o trecho "arquivo.write('\n')" garante que o hash do próximo arquivo, se houver algum, esteja na próxima linha. A chamada ao método close() garante que a mémoria utilizada pelo arquivo seja liberada.
+Após isso, separei os dois get's que escrevi no segundo dia em duas funções. Utilizei o método [os.mkdir](https://docs.python.org/3/library/os.html#mkdir) para criar uma pasta, na qual serão guardados os cadernos e um arquivo contendo uma lista dos MD5 de cada caderno. 
+Havia também um erro na expressão regular, que foi corrigida de "?<=chamarCaptcha\()(.*)(?=,)" para "(?<=chamarCaptcha\()(.*?)(?=,)", o ? adicional faz com que a expressão corresponda ao mínimo de caracteres possíveis (ocorria um erro quando na data indicada havia mais de um caderno).
+
+Outras Referências:
+[Verificação de pasta](https://stackabuse.com/python-check-if-a-file-or-directory-exists/)
+[Modos de pasta](http://www.yourownlinux.com/2013/09/chmod-basics-of-filesdirectories.html)
+
+Ainda nesse dia verifiquei que, como não é necessário salvar os cadernos, então fiz o hash das partes do arquivo assim que elas eram baixadas. Além disso inclui tratamentos de exceções nas duas funções do código e utilizei a função [exc_info()](https://docs.python.org/3/library/sys.html#exc_info) da biblioteca sys para mostrar erros inesperados e vi seu uso [aqui](https://docs.python.org/3/tutorial/errors.html#handling-exceptions).
+Referências:
+[Tratamento de exceções](https://docs.python.org/3/tutorial/errors.html)
+[Exceções HTTP](https://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module/16511493)
+## Pontos de melhorias:
+##### Relativo ao processo de construção da solução
+- Preciso estudar sobre documentação e percebo que deveria tê-la escrito concomitante ao código.
+- Deveria ter olhado de forma mais atenta para o problema, demorei para perceber que precisava fazer apenas get's para pegar a informação. Perdi um bom tempo pensando na ideia inicial do dicionário de padrões. Se eu tivesse olhado o código fonte da página mais atentamente esse tempo poderia ter sido poupado. Além disso, como é possível ver nos commites, os cadernos estavam sendo salvos inicialmente e isso não foi pedido no problema, gastei um tempo fazendo algo que não era necessário para solucionar o problema
+- Mudei muito o código que eu já havia commitado, isso não deveria ocorrer. Preciso pensar mais na solução antes de começar a codificar
+##### Relativo ao código
+- A aplicação está dependente de o usuário ter python3 instalado em seu computador.
+- Uma proposta futura seria utilizar alguma biblioteca para fazer uma interface para melhorar a usabilidade da aplicação
+

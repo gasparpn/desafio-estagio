@@ -56,7 +56,7 @@ def FazHashDiarios(listaDiariosId, dataDiarios):
                 hexadecimalHash = md5Hash.hexdigest()
                 arquivo.write(hexadecimalHash)
                 arquivo.write('\n')
-        print("Os hashs foram salvos no arquivo {} na pasta hash".format(nomeDiario))
+        print("Os hash foram salvos no arquivo {} na pasta hash".format(nomeDiario))
     except IOError as ioError:
         print(ioError)
         sys.exit(1)
