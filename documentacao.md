@@ -1,0 +1,10 @@
+# Documentação
+##### Explicação do projeto
+O código contido no projeto, após executado, primeiro solicita ao usuário que entre com uma data no formato dd/mm/aaaa. Após isso, cria, na pasta hash, um arquivo com o nome da data indicada no formato dd-mm-aaaa e escreve os MD5 dos diários oficiais relativos a essa data nesse arquivo.
+Esse código faz a tarefa acima utilizando-se, basicamente, de duas funções, uma chamada BuscaIdDiarios(data) e outra chamada FazHashDiarios(). Segue a explicação destas:
+- **BuscaIdDiarios(data)**: Recebe como parâmetro a data que o usuário digitou e faz um get para a url http://inter03.tse.jus.br/sadJudDiarioDeJusticaConsulta/diarioTxt.do, e, dentre outros parâmetros, envia a data recebida. A respota a esse get, em sendo sucesso, é uma página HTML que contém dentre outras informações os Ids dos diários relativos a essa data. Diante disso, aplica-se o regex "?<=chamarCaptcha\()(.*?)(?=,)" na resposta e obtem-se os ids dos diários, que então são retornado em forma de lista.
+- **FazHashDiarios(listaDiariosId, dataDiarios)**: Recebe como parâmetros a lista de Ids retornada pela função anterior e a data digitada pelo usuário e, para cada Id na lista, essa função faz um get para a url http://inter03.tse.jus.br/sadJudDiarioDeJusticaConsulta/diario.do, e, dentre outros parâmetros, envia o Id. Como resposta, em sendo sucesso, obtem-se o diário relativo a esse Id em formato de PDF. Após isso, é criado um arquivo texto com o nome da data recebida como argumento no formato dd-mm-aaaa e faz-se um hash do arquivo PDF e o guarda no arquivo texto. Tem-se então como resultado um arquivo texto contendo um hash para cada PDF em linhas separadas.
+
+##### Como executar o projeto
+Após baixar o repositório, vá até a pasta "codigo/" e digite em seu terminal: python3 fonte.py. Após isso, o programa solicita, na linha de comando, que o usuário entre com a data, que deve estar necessariamente no formato dd/mm/aaaa.
+Obs.: O usuário deverá ter python3 instalado sua máquina para que a aplicação funcione.
